@@ -1,0 +1,14 @@
+services:
+  news-digest-agent:
+    build: # 使用當前目錄的 Dockerfile
+      context: .
+      dockerfile: Dockerfile
+    container_name: news-digest-agent
+    # 讀取 .env 檔案中的環境變數
+    env_file:
+      - .env
+    environment:
+      - GEMINI_MODEL_NAME=gemini-2.5-flash
+    # 掛載歷史紀錄檔案，確保重啟後紀錄還在
+    volumes:
+      - ./history.txt:/app/history.txt

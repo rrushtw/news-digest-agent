@@ -1,0 +1,23 @@
+# Ignore python cache file
+.vscode/
+__pycache__/
+*.py[cod]
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore Git files (減少 context 大小)
+.git/
+.gitignore
+
+# Ignore local config & history (確保 Image 純淨)
+.env
+history.txt
+docker-compose.yml
+README.md
+
+# Virtual Env
+.venv
+venv/
+.venv/

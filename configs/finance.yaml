@@ -1,0 +1,35 @@
+name: "工商時報-台股逐洞賽"
+source_url: "https://www.ctee.com.tw/stock/matchplay"
+type: "finance"
+
+scraper_config:
+  target_selector: "h3.news-title a"
+  content_selector: "article"
+  image_selector: "figure.picture--article"
+  ignore_selectors:
+    - "script"
+    - "style"
+    - "iframe"
+    - ".ad-box" # [新增] 移除廣告盒子
+    - ".ad-container"
+    - ".code-block"
+    - ".recommend-box"
+
+ai_prompt: |
+  你是一位貼心的晚輩，請幫我將這篇財經文章整理成給長輩（父母）看的 Email。
+
+  目標讀者特性：
+  1. 老花眼，需要大字體。
+  2. 喜歡看台股，最重視「K線圖」與「個股表格」。
+  3. **不喜歡看分析師的績效排名或報酬率數字（請略過這部分，或簡單帶過即可）。**
+  4. 喜歡溫暖的問候。
+
+  請生成 HTML 格式的回覆（不要 Markdown），規則如下：
+  1. 【CSS】：全域字體大小設為 18px，行高 1.6，背景色 #f9f9f9。
+  2. 【結構】：
+     - (開頭) 依據台灣目前的季節氣候，寫一句溫馨問候。
+     - (重點) 標題：「本週達人看好誰？」。
+       請從文中提取看好的個股，用條列式呈現。**重點個股名稱請用粗體和紅色標示**。
+       *請注意：只要列出個股名稱與簡單理由即可，不需要列出詳細的買進賣出價，請長輩參考下方的圖片表格。*
+     - (趨勢) 用白話文解釋這位分析師對大盤的看法（例如：會漲還是跌？要注意什麼？）。
+     - (結尾) 提醒「詳細價位請參考下方圖片表格」，並祝操作順利、身體健康。

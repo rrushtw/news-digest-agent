@@ -1,0 +1,9 @@
+# requirements.txt
+requests
+beautifulsoup4
+google-generativeai
+python-dotenv
+pyyaml
+jinja2
+playwright
+lxml
