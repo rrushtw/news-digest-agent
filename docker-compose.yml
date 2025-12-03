@@ -3,6 +3,7 @@ services:
     build: # 使用當前目錄的 Dockerfile
       context: .
       dockerfile: Dockerfile
+    image: news-digest-agent:latest
     container_name: news-digest-agent
     # 讀取 .env 檔案中的環境變數
     env_file:

@@ -7,9 +7,9 @@ class BaseScraper(ABC):
         self.base_url = "https://www.ctee.com.tw"  # 預設，子類別可覆蓋
 
     @abstractmethod
-    def fetch_latest(self):
+    def fetch_new_articles(self, known_urls=None):
         """
-        必須實作：回傳 (title, content, url)
-        如果失敗回傳 None
+        必須實作：
+        傳入已知的 URL 集合 (known_urls)，回傳新文章列表
         """
         pass
