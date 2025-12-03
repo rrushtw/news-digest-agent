@@ -2,7 +2,8 @@
 import logging
 import os
 
-import google.generativeai as genai  # [修改] 換成這個套件
+from google import genai
+from google.genai import types
 
 
 class GeminiProcessor:
@@ -13,37 +14,44 @@ class GeminiProcessor:
             logging.error("GEMINI_API_KEY not found in .env")
             return
 
-        # 設定 API Key
-        genai.configure(api_key=api_key)
+        self.client = genai.Client(api_key=api_key)
 
         # 初始化模型
         self.model_name = os.getenv("GEMINI_MODEL_NAME")
         logging.info(f"Selected Model: {self.model_name}")
-        self.model = genai.GenerativeModel(self.model_name)
+        self.tools = [types.Tool(google_search=types.GoogleSearch())]
 
-    def process(self, content: str, prompt_template: str) -> str:
+    def process_url(self, url: str, title: str, prompt_template: str) -> str:
         """
-        將文章內容丟給 Gemini 進行摘要與改寫
+        直接給 URL 讓 Gemini 去讀
         """
-        if not content:
-            return None
-
-        # 組合 Prompt
-        full_prompt = f"{prompt_template}\n\n【原始文章內容】：\n{content[:15000]}"  # 截斷以防超長
+        # 組合 Prompt：明確告訴它去讀這個網址
+        full_prompt = f"""
+        請利用 Google Search Grounding 功能，閱讀這篇網頁內容：{url}
+        
+        文章標題：{title}
+        
+        {prompt_template}
+        """
 
         try:
-            logging.info(f"Sending request to Google AI Studio ({self.model_name})...")
-            response = self.model.generate_content(full_prompt)
+            logging.info(f"Asking Gemini to read URL: {url}")
 
-            if not response.parts:
-                logging.warning(
-                    f"Gemini returned empty response. Finish Reason: {response.prompt_feedback}"
-                )
-                return "（AI 無法生成摘要，可能因內容觸發安全過濾機制）"
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=full_prompt,
+                config=types.GenerateContentConfig(tools=self.tools),
+            )
 
+            # 檢查回應
+            if not response.text:
+                logging.warning("Gemini returned empty response.")
+                return None
+
+            # 清理 Markdown
             clean_html = response.text.replace("```html", "").replace("```", "").strip()
             return clean_html
 
         except Exception as e:
-            logging.error(f"Gemini API processing failed: {e}")
+            logging.error(f"Gemini Grounding failed: {e}")
             return None

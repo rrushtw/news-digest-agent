@@ -1,23 +1,31 @@
-# Ignore python cache file
-.vscode/
-__pycache__/
-*.py[cod]
-
-# Ignore logs
-logs/
-*.log
-
-# Ignore Git files (減少 context 大小)
+# Git 相關
 .git/
 .gitignore
 
-# Ignore local config & history (確保 Image 純淨)
-.env
-history.txt
-docker-compose.yml
-README.md
+# 暫存檔與快取
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Virtual Env
-.venv
-venv/
-.venv/
+# 環境變數與設定 (不應燒錄進 Image)
+.env
+.vscode/
+.devcontainer/
+
+# 巨大的備份檔案 (這就是罪魁禍首！)
+*.tar
+*.zip
+*.gz
+*.rar
+
+# 應用程式資料 (應該透過 Volume 掛載)
+history.txt
+logs/
+*.log
+
+# Docker 相關 (避免遞迴複製)
+docker-compose.yml
+Dockerfile
+README.md

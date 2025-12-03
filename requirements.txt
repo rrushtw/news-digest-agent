@@ -1,9 +1,9 @@
 # requirements.txt
 requests
 beautifulsoup4
-google-generativeai
+google-genai
 python-dotenv
 pyyaml
 jinja2
-playwright
+playwright==1.55.0
 lxml

@@ -1,6 +1,7 @@
 # main.py
 import logging
 import os
+import time
 from typing import Set
 
 import yaml
@@ -31,25 +32,6 @@ def get_scraper(config):
     if "ctee.com.tw" in config.get("source_url", ""):
         return CteeScraper(config)
     return None
-
-
-def _append_images_to_html(base_html, images):
-    """
-    輔助函式：將圖片列表轉換為 HTML 並附加到文章後方
-    """
-    if not images:
-        return base_html
-
-    html_chunk = "<br><hr><h3>📊 相關圖表參考</h3>"
-
-    for img in images:
-        html_chunk += f"""
-        <div style="margin-bottom: 20px; text-align: center;">
-            <img src="{img["url"]}" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px;">
-            <p style="font-size: 16px; color: #555; margin-top: 5px;">{img["caption"]}</p>
-        </div>
-        """
-    return base_html + html_chunk
 
 
 def load_history() -> Set[str]:
@@ -117,24 +99,30 @@ def process_single_config(filename, config_dir, processor, notifier):
     email_body_parts = []
     success_urls = []
 
-    for article in new_articles:
+    for i, article in enumerate(new_articles):
+        # 除了第一篇，之後的每一篇都要先休息一下，避免觸發 API Rate Limit (429)
+        if i > 0:
+            logging.info(
+                "⏳ Sleeping for 15 seconds to respect Gemini API rate limits..."
+            )
+            time.sleep(15)
+
         logging.info(f"Processing Article with AI: {article['title']}")
 
         prompt = config.get("ai_prompt")
-        friendly_html = processor.process(article["content"], prompt)
+        # friendly_html = processor.process(article["content"], prompt)
+        friendly_html = processor.process_url(article["url"], article["title"], prompt)
 
         if not friendly_html:
             logging.warning(f"Skipping {article['title']} due to AI error.")
             continue
 
-        # 加上圖片
-        final_html = _append_images_to_html(friendly_html, article.get("images"))
-
         # 為每一篇文章加上標題區塊，方便區隔
         article_block = f"""
         <div style="border: 1px solid #ccc; padding: 20px; margin-bottom: 30px; border-radius: 10px; background-color: #fff;">
             <h2 style="color: #d32f2f; border-bottom: 2px solid #d32f2f; padding-bottom: 10px;">📰 {article["title"]}</h2>
-            {final_html}
+            {friendly_html}
+            <p style="text-align: right;"><a href="{article["url"]}" style="color: #007bff;">閱讀原文</a></p>
         </div>
         """
         email_body_parts.append(article_block)

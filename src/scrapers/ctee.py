@@ -1,154 +1,98 @@
 import logging
+import random
+import time
 
-import requests
-import urllib3  # 用來處理 SSL 警告
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
 from .base import BaseScraper
-
-# 關閉 "InsecureRequestWarning" 警告，避免 Log 被洗版
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class CteeScraper(BaseScraper):
     def fetch_new_articles(self, known_urls=None):
-        """
-        抓取所有不在 known_urls 中的新文章
-        """
         if known_urls is None:
             known_urls = set()
 
         url = self.config.get("source_url")
         selectors = self.config.get("scraper_config", {})
 
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-
-        try:
-            # 1. 抓取列表頁
-            logging.info(f"Fetching list from: {url}")
-
-            # 加入 verify=False 解決公司網路 SSL 攔截問題
-            resp = requests.get(url, headers=headers, verify=False)
-
-            if resp.status_code != 200:
-                logging.error(f"Failed to fetch list. Status: {resp.status_code}")
-                return []
-
-            soup = BeautifulSoup(resp.text, "lxml")
-            target_sel = selectors.get("target_selector", "h3.news-title a")
-
-            # [關鍵修改] 改用 select 抓取多個連結 (預設抓前 10 篇來檢查)
-            link_tags = soup.select(target_sel)[:10]
-
-            if not link_tags:
-                logging.warning(f"No article links found with selector: {target_sel}")
-                return []
-
-            new_articles_queue = []
-
-            # [策略] 抓取所有「沒看過」的文章。
-            for tag in link_tags:
-                article_url = tag["href"]
-                if not article_url.startswith("http"):
-                    article_url = "https://www.ctee.com.tw" + article_url
-
-                title = tag.get_text().strip()
-
-                # 如果這篇文章已經在歷史紀錄中，代表後面的都是舊聞了，直接停止掃描
-                if article_url in known_urls:
-                    logging.info(f"Found known article, stopping scan: {title}")
-                    break
-
-                # 加入待抓取清單
-                new_articles_queue.append({"url": article_url, "title": title})
-
-            # 如果沒有新文章
-            if not new_articles_queue:
-                logging.info("No new articles found.")
-                return []
-
-            logging.info(
-                f"Found {len(new_articles_queue)} new articles. Fetching content..."
+        # 使用 Playwright 啟動瀏覽器
+        with sync_playwright() as p:
+            # 啟動 Chromium (headless=True 代表不顯示視窗，適合在 Docker/Server 跑)
+            # browser = p.chromium.launch(headless=True)
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    "--disable-blink-features=AutomationControlled",  # 關鍵：隱藏自動化標記
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                ],
             )
 
-            # 2. 批次抓取內文
-            results = []
-            # 注意：列表通常是 新->舊，為了閱讀順序，我們可以反轉 (舊->新) 或是保持原樣
-            # 這裡保持 新->舊 的順序處理，讓長輩先看到最新的
-            for item in new_articles_queue:
-                article_data = self._fetch_single_article(
-                    item["url"], item["title"], headers, selectors
-                )
-                if article_data:
-                    results.append(article_data)
+            # 設定 Context (偽裝成一般瀏覽器)
+            context = browser.new_context(
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                viewport={"width": 1920, "height": 1080},
+                ignore_https_errors=True,
+            )
 
-            return results
+            # 注入 JavaScript，徹底移除 webdriver 屬性
+            context.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                });
+            """)
 
-        except Exception as e:
-            logging.error(f"Error in CteeScraper: {e}")
-            return []
+            page = context.new_page()
 
-    def _fetch_single_article(self, url, title, headers, selectors):
-        """
-        [輔助函式] 抓取單篇文章內容
-        """
-        try:
-            logging.info(f"Fetching content: {title}")
-            resp = requests.get(url, headers=headers, verify=False)
-            soup = BeautifulSoup(resp.text, "lxml")
+            try:
+                # --- 1. 抓取列表頁 ---
+                logging.info(f"Fetching list from: {url} (using Playwright)")
 
-            content_sel = selectors.get("content_selector", "article")
+                # 前往頁面，等待網路閒置 (確保載入完成)
+                response = page.goto(url, wait_until="domcontentloaded", timeout=15000)
 
-            # 優先找 article，找不到則找 content__body
-            content_div = soup.select_one(content_sel)
-            if not content_div:
-                content_div = soup.select_one(".content__body")
+                if response.status != 200:
+                    logging.error(f"Failed to fetch list. Status: {response.status}")
+                    return []
 
-            if not content_div:
-                logging.warning(f"Skipping {title}: No content found.")
-                return None
+                # 隨機延遲一下，模擬真人
+                time.sleep(random.uniform(1, 3))
 
-            # --- 3. 圖片處理 (在 content__body 範圍內搜尋) ---
-            images = []
+                # 取得渲染後的 HTML 給 BeautifulSoup 解析
+                html = page.content()
+                soup = BeautifulSoup(html, "lxml")
 
-            # 擴大搜尋範圍：圖片可能在 article 外但在 body 內
-            body_scope = soup.select_one(".content__body") or content_div
-            img_sel = selectors.get("image_selector", "figure.picture--article")
+                target_sel = selectors.get("target_selector", "h3.news-title a")
+                link_tags = soup.select(target_sel)[:20]  # 只看前 20 篇
 
-            for fig in body_scope.select(img_sel):
-                a_tag = fig.select_one("a")
-                img_tag = fig.select_one("img")
-                caption_tag = fig.select_one("figcaption")
+                if not link_tags:
+                    logging.warning(
+                        f"No article links found with selector: {target_sel}"
+                    )
+                    # 截圖除錯 (若失敗，這張圖會幫助很大)
+                    # page.screenshot(path="debug_list_failed.png")
+                    return []
 
-                img_url = ""
-                # 優先抓取超連結 (通常是 Lightbox 大圖)
-                if a_tag and "href" in a_tag.attrs:
-                    img_url = a_tag["href"]
-                elif img_tag and "src" in img_tag.attrs:
-                    img_url = img_tag["src"]
+                results = []
 
-                caption = caption_tag.get_text().strip() if caption_tag else ""
+                for tag in link_tags:
+                    article_url = tag["href"]
+                    if not article_url.startswith("http"):
+                        article_url = "https://www.ctee.com.tw" + article_url
 
-                if img_url and not img_url.endswith(".svg"):
-                    images.append({"url": img_url, "caption": caption})
+                    title = tag.get_text().strip()
 
-            # 清理雜訊
-            ignore_list = selectors.get("ignore_selectors", [])
-            for ignore in ignore_list:
-                for tag in content_div.select(ignore):
-                    tag.decompose()
+                    if article_url in known_urls:
+                        logging.info(f"Found known article, stopping scan: {title}")
+                        break
 
-            text_content = content_div.get_text(separator="\n")
+                    results.append({"url": article_url, "title": title})
 
-            return {
-                "title": title,
-                "content": text_content,
-                "url": url,
-                "images": images,
-            }
+                return results
 
-        except Exception as e:
-            logging.error(f"Failed to fetch article {title}: {e}")
-            return None
+            except Exception as e:
+                logging.error(f"Error in CteeScraper (Playwright): {e}")
+                return []
+            finally:
+                browser.close()
