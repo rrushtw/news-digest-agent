@@ -12,3 +12,12 @@ logs/
 .env
 venv/
 .venv/
+
+# 巨大的備份檔案
+*.tar
+*.zip
+*.gz
+*.rar
+
+# 應用程式資料
+history.txt

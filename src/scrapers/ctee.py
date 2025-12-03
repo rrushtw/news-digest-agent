@@ -83,6 +83,13 @@ class CteeScraper(BaseScraper):
 
                     title = tag.get_text().strip()
 
+                    # 如果標題包含「戰績」，直接略過
+                    if "戰績" in title:
+                        logging.info(
+                            f"🚫 Ignoring performance report (image only): {title}"
+                        )
+                        continue
+
                     if article_url in known_urls:
                         logging.info(f"Found known article, stopping scan: {title}")
                         break

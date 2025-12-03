@@ -145,6 +145,7 @@ def process_single_config(filename, config_dir, processor, notifier):
         {combined_html}
         <div style="text-align: center; margin-top: 40px; color: #888; font-size: 12px;">
             <p>本郵件由 AI 自動整理發送，僅供參考。</p>
+            <p>祝您 操作順利 身體健康</p>
         </div>
     </body>
     </html>
