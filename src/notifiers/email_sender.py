@@ -18,14 +18,14 @@ class EmailNotifier:
         #    如果 .env 裡寫了 "a@test.com, a@test.com"，這裡只會保留一個
         self.target_emails = {e.strip() for e in raw_targets.split(",") if e.strip()}
 
-    def send(self, subject: str, html_content: str):
+    def send(self, subject: str, html_content: str) -> bool:
         if not html_content:
             logging.warning("No content to send.")
-            return
+            return False
 
         if not self.target_emails:
             logging.error("No target emails configured. Please check .env")
-            return
+            return False
 
         msg = MIMEText(html_content, "html", "utf-8")
         msg["Subject"] = Header(subject, "utf-8")
@@ -50,6 +50,8 @@ class EmailNotifier:
 
             server.quit()
             logging.info("Email sent successfully!")
+            return True
 
         except Exception as e:
             logging.error(f"Failed to send email: {e}")
+            return False

@@ -153,15 +153,17 @@ def process_single_config(filename, config_dir, processor, notifier):
 
     subject = f"【{config['name']}】今日重點快訊 ({len(email_body_parts)} 篇)"
 
-    try:
-        notifier.send(subject, full_email_content)
-        # 寄送成功後，一次將所有 URL 寫入歷史紀錄
+    # 只有「真正寄送成功」才寫入歷史紀錄；任何失敗都不寫，讓下次執行能重試，
+    # 避免寄信失敗卻把文章標記為已寄送、導致新聞永久遺失。
+    if notifier.send(subject, full_email_content):
         append_history(success_urls)
         logging.info(
             f"✅ Batch email sent successfully with {len(success_urls)} articles."
         )
-    except Exception as e:
-        logging.error(f"Failed to send batch email: {e}")
+    else:
+        logging.error(
+            f"❌ Email 寄送失敗，{len(success_urls)} 篇文章未寫入 history，下次將重試。"
+        )
 
 
 def main():
