@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     environment:
-      - GEMINI_MODEL_NAME=gemini-2.5-flash
+      - GEMINI_MODEL_NAME=gemini-3.5-flash
     # 掛載歷史紀錄檔案，確保重啟後紀錄還在
     volumes:
       - ./history.txt:/app/history.txt

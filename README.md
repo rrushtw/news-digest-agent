@@ -16,7 +16,7 @@
 ## ✨ 核心功能 (Features)
 
 * **🛡️ 自動去廣告 (Clean Read)**：透過 Python 爬蟲精準提取內文與圖表，移除所有廣告與干擾元素。
-* **🤖 AI 智慧摘要 (AI Powered)**：串接 **Google Gemini 2.5 Flash**，將艱澀的財經新聞改寫為長輩易讀的白話文，並自動抓取重點個股。
+* **🤖 AI 智慧摘要 (AI Powered)**：串接 **Google Gemini 3.5 Flash**，將艱澀的財經新聞改寫為長輩易讀的白話文，並自動抓取重點個股。
 * **📧 批次通知 (Batch Notification)**：自動彙整多篇新文章為一封 Email，避免長輩信箱被大量信件轟炸。
 * **🔄 智慧防重 (Deduplication)**：內建歷史紀錄機制 (`history.txt`)，確保不會重複寄送相同的文章。
 * **📊 圖文並茂**：保留原文關鍵的 K 線圖與表格，並針對手機閱讀進行 RWD 優化。
@@ -25,7 +25,7 @@
 ## 🛠️ 技術堆疊 (Tech Stack)
 
 * **Language**: Python 3.12+
-* **AI Model**: Google Gemini (Default: `gemini-2.5-flash`)
+* **AI Model**: Google Gemini (Default: `gemini-3.5-flash`)
 * **Scraping**: `Requests` + `BeautifulSoup4` (Base on `mcr.microsoft.com/playwright` image)
 * **Notification**: SMTP (Gmail)
 * **Deployment**: Docker & Docker Compose

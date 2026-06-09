@@ -17,7 +17,7 @@ class GeminiProcessor:
         self.client = genai.Client(api_key=api_key)
 
         # 初始化模型
-        self.model_name = os.getenv("GEMINI_MODEL_NAME")
+        self.model_name = os.getenv("GEMINI_MODEL_NAME", "gemini-3.5-flash")
         logging.info(f"Selected Model: {self.model_name}")
         self.tools = [types.Tool(google_search=types.GoogleSearch())]
 
