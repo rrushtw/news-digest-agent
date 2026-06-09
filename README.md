@@ -44,11 +44,18 @@ cd news-digest-agent
 ```
 
 ### 3. 設定環境變數
-請複製 `.env` 範本 (或自行建立)，並填入您的資訊：
+請複製範本 `.env.example` 為 `.env`，並填入您的資訊：
+
+```bash
+cp .env.example .env
+```
 
 ```env
 # Google Gemini API Key
 GEMINI_API_KEY=AIzaSyDxxxxxxxxxxxxxxxxxxxxxxxx
+
+# (可選) 指定 Gemini 模型，省略時預設 gemini-3.5-flash
+GEMINI_MODEL_NAME=gemini-3.5-flash
 
 # Gmail 設定 (寄件者)
 GMAIL_USER=your-email@gmail.com
