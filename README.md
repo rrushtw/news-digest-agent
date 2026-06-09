@@ -39,7 +39,7 @@
 
 ### 2. 下載專案
 ```bash
-git clone [news-digest-agent.git]
+git clone https://github.com/rrushtw/news-digest-agent.git
 cd news-digest-agent
 ```
 
@@ -117,7 +117,7 @@ news-digest-agent/
 
 ```yaml
 name: "工商時報-台股逐洞賽"
-source_url: "[https://www.ctee.com.tw/stock/matchplay](https://www.ctee.com.tw/stock/matchplay)"
+source_url: "https://www.ctee.com.tw/stock/matchplay"
 type: "finance"
 
 # 定義爬蟲選擇器 (CSS Selectors)

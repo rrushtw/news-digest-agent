@@ -44,7 +44,7 @@ def load_history() -> Set[str]:
 def append_history(urls: list[str] | str):
     """
     - 儲存已寄送的紀錄
-    - 只保留最近 50 筆，避免檔案無限膨脹
+    - 只保留最近 100 筆，避免檔案無限膨脹
     """
     if not urls:
         return

@@ -11,8 +11,8 @@ class GeminiProcessor:
         # 讀取 API Key
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            logging.error("GEMINI_API_KEY not found in .env")
-            return
+            # fail-fast：缺少金鑰直接拋例外，避免留下半初始化物件
+            raise RuntimeError("GEMINI_API_KEY not found in .env")
 
         self.client = genai.Client(api_key=api_key)
 
