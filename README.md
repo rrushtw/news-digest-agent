@@ -16,7 +16,7 @@
 ## ✨ 核心功能 (Features)
 
 * **🛡️ 自動去廣告 (Clean Read)**：透過 Python 爬蟲精準提取內文與圖表，移除所有廣告與干擾元素。
-* **🤖 AI 智慧摘要 (AI Powered)**：串接 **Google Gemini 2.5 Flash**，將艱澀的財經新聞改寫為長輩易讀的白話文，並自動抓取重點個股。
+* **🤖 AI 智慧摘要 (AI Powered)**：串接 **Google Gemini 3.5 Flash**，將艱澀的財經新聞改寫為長輩易讀的白話文，並自動抓取重點個股。
 * **📧 批次通知 (Batch Notification)**：自動彙整多篇新文章為一封 Email，避免長輩信箱被大量信件轟炸。
 * **🔄 智慧防重 (Deduplication)**：內建歷史紀錄機制 (`history.txt`)，確保不會重複寄送相同的文章。
 * **📊 圖文並茂**：保留原文關鍵的 K 線圖與表格，並針對手機閱讀進行 RWD 優化。
@@ -25,7 +25,7 @@
 ## 🛠️ 技術堆疊 (Tech Stack)
 
 * **Language**: Python 3.12+
-* **AI Model**: Google Gemini (Default: `gemini-2.5-flash`)
+* **AI Model**: Google Gemini (Default: `gemini-3.5-flash`)
 * **Scraping**: `Requests` + `BeautifulSoup4` (Base on `mcr.microsoft.com/playwright` image)
 * **Notification**: SMTP (Gmail)
 * **Deployment**: Docker & Docker Compose
@@ -44,11 +44,18 @@ cd news-digest-agent
 ```
 
 ### 3. 設定環境變數
-請複製 `.env` 範本 (或自行建立)，並填入您的資訊：
+請複製範本 `.env.example` 為 `.env`，並填入您的資訊：
+
+```bash
+cp .env.example .env
+```
 
 ```env
 # Google Gemini API Key
 GEMINI_API_KEY=AIzaSyDxxxxxxxxxxxxxxxxxxxxxxxx
+
+# (可選) 指定 Gemini 模型，省略時預設 gemini-3.5-flash
+GEMINI_MODEL_NAME=gemini-3.5-flash
 
 # Gmail 設定 (寄件者)
 GMAIL_USER=your-email@gmail.com
