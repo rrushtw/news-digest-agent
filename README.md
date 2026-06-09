@@ -76,7 +76,8 @@ docker compose up --build
 若要在背景執行並設定為排程任務（例如配合 Linux Crontab），可以設定 crontab 每天執行一次：
 ```bash
 # 範例：每天早上 8:00 執行
-0 8 * * * cd /path/to/news-digest-agent && /usr/bin/docker compose up >> cron.log 2>&1
+# 用 run --build --rm：每次自動重建以套用最新程式碼、跑完即移除容器（適合一次性批次任務）
+0 8 * * * cd /path/to/news-digest-agent && /usr/bin/docker compose run --build --rm news-digest-agent >> cron.log 2>&1
 ```
 
 ### 5. 本地開發 (Local Development)
