@@ -110,11 +110,23 @@ def process_single_config(filename, config_dir, processor, notifier):
         logging.info(f"Processing Article with AI: {article['title']}")
 
         prompt = config.get("ai_prompt")
-        # friendly_html = processor.process(article["content"], prompt)
-        friendly_html = processor.process_url(article["url"], article["title"], prompt)
 
+        # 主要路徑：自行抓取內文 → 交給 Gemini 整理（不耗 grounding 配額）
+        content = scraper.fetch_article_content(article["url"])
+        friendly_html = (
+            processor.process(content, article["title"], prompt) if content else None
+        )
+
+        # Fallback：直抓失敗或處理失敗時，改用 Gemini grounding 讀 URL
         if not friendly_html:
-            logging.warning(f"Skipping {article['title']} due to AI error.")
+            logging.info(f"Falling back to Gemini grounding for: {article['title']}")
+            friendly_html = processor.process_url(
+                article["url"], article["title"], prompt
+            )
+
+        # 兌現 ai_prompt 的 SKIP 規則：無實質內容則略過此篇
+        if not friendly_html or friendly_html.strip() == "SKIP":
+            logging.warning(f"Skipping {article['title']} (no content / SKIP).")
             continue
 
         # 為每一篇文章加上標題區塊，方便區隔

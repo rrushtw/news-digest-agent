@@ -20,13 +20,13 @@
 * **📧 批次通知 (Batch Notification)**：自動彙整多篇新文章為一封 Email，避免長輩信箱被大量信件轟炸。
 * **🔄 智慧防重 (Deduplication)**：內建歷史紀錄機制 (`history.txt`)，確保不會重複寄送相同的文章。
 * **📊 圖文並茂**：保留原文關鍵的 K 線圖與表格，並針對手機閱讀進行 RWD 優化。
-* **🐳 Docker Ready**：基於 Playwright 映像檔構建，部署容易，保留未來擴充動態爬蟲的彈性。
+* **🐳 Docker Ready**：基於輕量 `python:3.12-slim` 映像檔構建，部署容易、體積精簡。
 
 ## 🛠️ 技術堆疊 (Tech Stack)
 
 * **Language**: Python 3.12+
 * **AI Model**: Google Gemini (Default: `gemini-3.5-flash`)
-* **Scraping**: `Requests` + `BeautifulSoup4` (Base on `mcr.microsoft.com/playwright` image)
+* **Scraping**: `Requests` + `BeautifulSoup4` (lightweight, no headless browser)
 * **Notification**: SMTP (Gmail)
 * **Deployment**: Docker & Docker Compose
 
