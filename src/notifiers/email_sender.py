@@ -42,7 +42,6 @@ class EmailNotifier:
 
             # 使用 Gmail SSL Port 465
             server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
-            server.set_debuglevel(1)  # [新增] 這會印出連線過程，讓你知道卡在哪
             server.login(self.gmail_user, self.gmail_password)
 
             # 3. to_addrs 接受 list 參數

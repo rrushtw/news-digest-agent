@@ -90,9 +90,11 @@ class CteeScraper(BaseScraper):
                         )
                         continue
 
+                    # 逐篇比對：略過已寄送過的文章；不假設列表為嚴格反時序排列，
+                    # 即使有置頂或亂序文章也不會漏抓後面的新文。
                     if article_url in known_urls:
-                        logging.info(f"Found known article, stopping scan: {title}")
-                        break
+                        logging.info(f"Skipping known article: {title}")
+                        continue
 
                     results.append({"url": article_url, "title": title})
 
