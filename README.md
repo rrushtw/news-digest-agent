@@ -20,13 +20,13 @@
 * **📧 批次通知 (Batch Notification)**：自動彙整多篇新文章為一封 Email，避免長輩信箱被大量信件轟炸。
 * **🔄 智慧防重 (Deduplication)**：內建歷史紀錄機制 (`history.txt`)，確保不會重複寄送相同的文章。
 * **📊 圖文並茂**：保留原文關鍵的 K 線圖與表格，並針對手機閱讀進行 RWD 優化。
-* **🐳 Docker Ready**：基於 Playwright 映像檔構建，部署容易，保留未來擴充動態爬蟲的彈性。
+* **🐳 Docker Ready**：基於輕量 `python:3.12-slim` 映像檔構建，部署容易、體積精簡。
 
 ## 🛠️ 技術堆疊 (Tech Stack)
 
 * **Language**: Python 3.12+
 * **AI Model**: Google Gemini (Default: `gemini-3.5-flash`)
-* **Scraping**: `Requests` + `BeautifulSoup4` (Base on `mcr.microsoft.com/playwright` image)
+* **Scraping**: `Requests` + `BeautifulSoup4` (lightweight, no headless browser)
 * **Notification**: SMTP (Gmail)
 * **Deployment**: Docker & Docker Compose
 
@@ -76,7 +76,9 @@ docker compose up --build
 若要在背景執行並設定為排程任務（例如配合 Linux Crontab），可以設定 crontab 每天執行一次：
 ```bash
 # 範例：每天早上 8:00 執行
-0 8 * * * cd /path/to/news-digest-agent && /usr/bin/docker compose up >> cron.log 2>&1
+# image 需先備妥（本機 build 後 docker save/load，或在此 docker compose build）；
+# run --rm：用既有 image 跑一次、結束即移除容器（適合一次性批次任務）
+0 8 * * * cd /path/to/news-digest-agent && /usr/bin/docker compose run --rm news-digest-agent >> cron.log 2>&1
 ```
 
 ### 5. 本地開發 (Local Development)

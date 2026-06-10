@@ -1,5 +1,5 @@
-# 1. 基礎映像檔
-FROM mcr.microsoft.com/playwright/python:v1.55.0-noble
+# 1. 基礎映像檔（已改用樸素 requests 爬蟲，不再需要 Playwright/Chromium）
+FROM python:3.12-slim
 
 # 2. 設定在容器內的工作目錄
 WORKDIR /app
